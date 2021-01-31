@@ -7,6 +7,8 @@ func TestParse(t *testing.T) {
 		input string
 		want  string
 	}{
+		{"1", "1"},
+		{"654", "654"},
 		{"0 + 1", "1"},
 		{"0+1", "1"},
 		{"1+1", "2"},

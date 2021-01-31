@@ -8,7 +8,10 @@ import (
 
 const eof string = "EOF"
 const number string = "NUMBER"
-const operator string = "OPERATOR"
+const plus string = "PLUS"
+const minus string = "MINUS"
+const multiply string = "MULTIPLY"
+const divide string = "DIVIDE"
 
 type token struct {
 	Type  string
@@ -56,7 +59,7 @@ func (i *interpreter) getTokenParsers() []func(char string, text string, pos int
 		// Plus
 		func(char string, text string, pos int) token {
 			if char == "+" {
-				return token{operator, char}
+				return token{plus, char}
 			}
 
 			return token{}
@@ -65,7 +68,7 @@ func (i *interpreter) getTokenParsers() []func(char string, text string, pos int
 		// Minus
 		func(char string, text string, pos int) token {
 			if char == "-" {
-				return token{operator, char}
+				return token{minus, char}
 			}
 
 			return token{}
@@ -74,7 +77,7 @@ func (i *interpreter) getTokenParsers() []func(char string, text string, pos int
 		// Multiply
 		func(char string, text string, pos int) token {
 			if char == "*" {
-				return token{operator, char}
+				return token{multiply, char}
 			}
 
 			return token{}
@@ -83,7 +86,7 @@ func (i *interpreter) getTokenParsers() []func(char string, text string, pos int
 		// Divide
 		func(char string, text string, pos int) token {
 			if char == "/" {
-				return token{operator, char}
+				return token{divide, char}
 			}
 
 			return token{}
@@ -166,7 +169,16 @@ func (i *interpreter) Parse() string {
 
 	for i.currentToken.Type != eof {
 		op = i.currentToken
-		err = i.eat(operator)
+		var err error = nil
+		if op.Type == plus {
+			err = i.eat(plus)
+		} else if op.Type == minus {
+			err = i.eat(minus)
+		} else if op.Type == multiply {
+			err = i.eat(multiply)
+		} else if op.Type == divide {
+			err = i.eat(divide)
+		}
 		failOnError(err)
 
 		right = i.currentToken
