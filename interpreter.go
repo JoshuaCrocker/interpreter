@@ -70,6 +70,24 @@ func (i *interpreter) getTokenParsers() []func(char string, text string, pos int
 
 			return token{}
 		},
+
+		// Multiply
+		func(char string, text string, pos int) token {
+			if char == "*" {
+				return token{operator, char}
+			}
+
+			return token{}
+		},
+
+		// Divide
+		func(char string, text string, pos int) token {
+			if char == "/" {
+				return token{operator, char}
+			}
+
+			return token{}
+		},
 	}
 }
 
@@ -154,13 +172,21 @@ func (i *interpreter) Parse() string {
 		rightInt, _ := strconv.Atoi(right.Value.(string))
 
 		return strconv.Itoa(leftInt + rightInt)
-	}
-
-	if op.Value == "-" {
+	} else if op.Value == "-" {
 		leftInt, _ := strconv.Atoi(left.Value.(string))
 		rightInt, _ := strconv.Atoi(right.Value.(string))
 
 		return strconv.Itoa(leftInt - rightInt)
+	} else if op.Value == "*" {
+		leftInt, _ := strconv.Atoi(left.Value.(string))
+		rightInt, _ := strconv.Atoi(right.Value.(string))
+
+		return strconv.Itoa(leftInt * rightInt)
+	} else if op.Value == "/" {
+		leftInt, _ := strconv.Atoi(left.Value.(string))
+		rightInt, _ := strconv.Atoi(right.Value.(string))
+
+		return strconv.Itoa(leftInt / rightInt)
 	}
 
 	return ""
