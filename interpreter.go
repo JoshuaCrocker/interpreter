@@ -8,7 +8,7 @@ import (
 
 const eof string = "EOF"
 const number string = "NUMBER"
-const plus string = "PLUS"
+const operator string = "OPERATOR"
 
 type token struct {
 	Type  string
@@ -44,7 +44,16 @@ func (i *interpreter) getTokenParsers() []func(char string) token {
 		// Plus
 		func(char string) token {
 			if char == "+" {
-				return token{plus, char}
+				return token{operator, char}
+			}
+
+			return token{}
+		},
+
+		// Minus
+		func(char string) token {
+			if char == "-" {
+				return token{operator, char}
 			}
 
 			return token{}
@@ -112,18 +121,25 @@ func (i *interpreter) Parse() string {
 	failOnError(err)
 
 	op := i.currentToken
-	err = i.eat(plus)
+	err = i.eat(operator)
 	failOnError(err)
 
 	right := i.currentToken
 	err = i.eat(number)
 	failOnError(err)
 
-	if op.Type == plus {
+	if op.Value == "+" {
 		leftInt, _ := strconv.Atoi(left.Value.(string))
 		rightInt, _ := strconv.Atoi(right.Value.(string))
 
 		return strconv.Itoa(leftInt + rightInt)
+	}
+
+	if op.Value == "-" {
+		leftInt, _ := strconv.Atoi(left.Value.(string))
+		rightInt, _ := strconv.Atoi(right.Value.(string))
+
+		return strconv.Itoa(leftInt - rightInt)
 	}
 
 	return ""
