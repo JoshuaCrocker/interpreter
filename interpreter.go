@@ -22,27 +22,39 @@ type interpreter struct {
 }
 
 type iinterpreter interface {
-	getTokenParsers() []func(char string) token
+	getTokenParsers() []func(char string, text string, pos int) token
 	getNextToken() token
 	eat(tokenType string) error
 	Parse() string
 }
 
-func (i *interpreter) getTokenParsers() []func(char string) token {
-	return []func(char string) token{
+func (i *interpreter) getTokenParsers() []func(char string, text string, pos int) token {
+	return []func(char string, text string, pos int) token{
 		// Number
-		func(char string) token {
+		func(char string, text string, pos int) token {
 			rDigit, _ := regexp.Compile("[0-9]")
+			output := ""
 
-			if rDigit.MatchString(char) {
-				return token{number, char}
+			for rDigit.MatchString(char) {
+				output += char
+				pos++
+
+				if pos < len(text) {
+					char = string([]rune(text)[pos])
+				} else {
+					char = ""
+				}
+			}
+
+			if output != "" {
+				return token{number, output}
 			}
 
 			return token{}
 		},
 
 		// Plus
-		func(char string) token {
+		func(char string, text string, pos int) token {
 			if char == "+" {
 				return token{operator, char}
 			}
@@ -51,7 +63,7 @@ func (i *interpreter) getTokenParsers() []func(char string) token {
 		},
 
 		// Minus
-		func(char string) token {
+		func(char string, text string, pos int) token {
 			if char == "-" {
 				return token{operator, char}
 			}
@@ -76,14 +88,23 @@ func (i *interpreter) getNextToken() (token, error) {
 	}
 
 	currentChar := string([]rune(text)[i.pos])
+	for currentChar == " " {
+		i.pos++
+		currentChar = string([]rune(text)[i.pos])
+	}
 	var t token
 	blankToken := token{}
 
 	for _, parser := range i.getTokenParsers() {
-		t = parser(currentChar)
+		t = parser(currentChar, i.text, i.pos)
 
 		if t != blankToken {
-			i.pos++
+			n := 0
+			for n < len(t.Value.(string)) {
+				i.pos++
+				n++
+			}
+
 			return t, nil
 		}
 	}
