@@ -127,7 +127,7 @@ func (i *interpreter) getNextToken() (token, error) {
 		}
 	}
 
-	return t, errors.New("Undefined token")
+	return t, errors.New("Undefined token: " + currentChar)
 }
 
 // Eat the next token within the input. This method fails if the next token
@@ -141,7 +141,7 @@ func (i *interpreter) eat(tokenType string) error {
 
 		i.currentToken = next
 	} else {
-		return errors.New("Token Mismatch")
+		return errors.New("Token Mismatch (got " + i.currentToken.Type + " expected " + tokenType + ")")
 	}
 
 	return nil
@@ -149,45 +149,44 @@ func (i *interpreter) eat(tokenType string) error {
 
 // Parse an arithmetic expression
 func (i *interpreter) Parse() string {
+	var left, op, right token
+	var output int = 0
+
 	// Set the current token to the first token
 	token, err := i.getNextToken()
 	failOnError(err)
 
 	i.currentToken = token
 
-	left := i.currentToken
+	left = i.currentToken
 	err = i.eat(number)
 	failOnError(err)
 
-	op := i.currentToken
-	err = i.eat(operator)
-	failOnError(err)
+	output, _ = strconv.Atoi(left.Value.(string))
 
-	right := i.currentToken
-	err = i.eat(number)
-	failOnError(err)
+	for i.currentToken.Type != eof {
+		op = i.currentToken
+		err = i.eat(operator)
+		failOnError(err)
 
-	if op.Value == "+" {
-		leftInt, _ := strconv.Atoi(left.Value.(string))
-		rightInt, _ := strconv.Atoi(right.Value.(string))
+		right = i.currentToken
+		err = i.eat(number)
+		failOnError(err)
 
-		return strconv.Itoa(leftInt + rightInt)
-	} else if op.Value == "-" {
-		leftInt, _ := strconv.Atoi(left.Value.(string))
-		rightInt, _ := strconv.Atoi(right.Value.(string))
-
-		return strconv.Itoa(leftInt - rightInt)
-	} else if op.Value == "*" {
-		leftInt, _ := strconv.Atoi(left.Value.(string))
-		rightInt, _ := strconv.Atoi(right.Value.(string))
-
-		return strconv.Itoa(leftInt * rightInt)
-	} else if op.Value == "/" {
-		leftInt, _ := strconv.Atoi(left.Value.(string))
-		rightInt, _ := strconv.Atoi(right.Value.(string))
-
-		return strconv.Itoa(leftInt / rightInt)
+		if op.Value == "+" {
+			rightInt, _ := strconv.Atoi(right.Value.(string))
+			output += rightInt
+		} else if op.Value == "-" {
+			rightInt, _ := strconv.Atoi(right.Value.(string))
+			output -= rightInt
+		} else if op.Value == "*" {
+			rightInt, _ := strconv.Atoi(right.Value.(string))
+			output *= rightInt
+		} else if op.Value == "/" {
+			rightInt, _ := strconv.Atoi(right.Value.(string))
+			output /= rightInt
+		}
 	}
 
-	return ""
+	return strconv.Itoa(output)
 }
